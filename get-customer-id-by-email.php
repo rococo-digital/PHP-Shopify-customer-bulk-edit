@@ -28,11 +28,18 @@ $session = new Session(
 );
 $session->setAccessToken($_ENV['SHOPIFY_ADMIN_API_ACCESS_TOKEN']);
 
-$customer = Customer::search(
-    $session,
-    [],
-    ['query' => 'email:matt@rococodigital.co.uk'],
-);
 
-var_dump($customer) ;
+$open = fopen("customer_list.csv", "r");
+$data = fgetcsv($open, 1000, ",");
+
+while (($email = fgetcsv($open, 1000, ",")) !== FALSE) 
+{
+    $customer = Customer::search(
+        $session,
+        [],
+        ['query' => 'email:' . $email[0]],
+    );
+    var_dump($customer) ;
+}
+
 ?>

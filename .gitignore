@@ -2,3 +2,5 @@
 tmp/
 vendor/
 composer.lock
+customer_list.csv
+.DS_Store
