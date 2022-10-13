@@ -28,18 +28,40 @@ $session = new Session(
 );
 $session->setAccessToken($_ENV['SHOPIFY_ADMIN_API_ACCESS_TOKEN']);
 
+function array2csv($data, $delimiter = ',', $enclosure = '"', $escape_char = "\\")
+{
+    $f = fopen('php://memory', 'r+');
+    foreach ($data as $item) {
+        fputcsv($f, $item, $delimiter, $enclosure, $escape_char);
+    }
+    rewind($f);
+    return stream_get_contents($f);
+}
 
-$open = fopen("customer_list.csv", "r");
-$data = fgetcsv($open, 1000, ",");
+$input = fopen("customer_list.csv", "r");
+$output = fopen("php://output",'w') or die("Can't open php://output");
+header("Content-Type:application/csv"); 
+header("Content-Disposition:attachment;filename=output.csv"); 
 
-while (($email = fgetcsv($open, 1000, ",")) !== FALSE) 
+$ids = [];
+while (($email = fgetcsv($input, 1000, ",")) !== FALSE) 
 {
     $customer = Customer::search(
         $session,
         [],
-        ['query' => 'email:' . $email[0]],
+        ["fields" => "id",'query' => 'email:' . $email[0]],
     );
-    var_dump($customer) ;
-}
 
+    if($customer['customers'])
+        array_push($ids, $customer['customers'][0]);
+    else{
+        print_r("error customer not found: " . $email[0] . "\n");
+    }
+     sleep(1);
+}
+// print_r($ids);
+var_dump(array2csv($ids));
+// fputcsv($output, $ids, ",");
+fclose($input) or die("Can't close input");
+fclose($output) or die("Can't close php://output");
 ?>
